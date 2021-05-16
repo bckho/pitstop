@@ -3,9 +3,9 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: rabbitmq
+    container_name: rabbitmq-pitstop
     volumes:
-      - rabbitmqdata:/var/lib/rabbitmq
+      - pitstoprabbitmqdata:/var/lib/rabbitmq
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -15,9 +15,9 @@ services:
       
   sqlserver:
     image: microsoft/mssql-server-linux:latest
-    container_name: sqlserver
+    container_name: sqlserver-pitstop
     volumes:
-      - sqlserverdata:/var/opt/mssql 
+      - pitstopsqlserverdata:/var/opt/mssql 
     ports:
       - "1434:1433"
     environment:
@@ -27,14 +27,14 @@ services:
 
   mailserver:
     image: maildev/maildev
-    container_name: mailserver
+    container_name: mailserver-pitstop
     ports:
       - "25:25"
       - "4000:80"
 
   logserver:
     image: datalust/seq:latest
-    container_name: logserver
+    container_name: logserver-pitstop
     ports:
       - "5341:80"
     environment:
@@ -76,7 +76,7 @@ services:
   auditlogservice:
     image: pitstop/auditlogservice:1.0
     build: AuditlogService
-    container_name: auditlogservice
+    container_name: auditlogservice-pitstop
     depends_on:
       - rabbitmq
     environment:
@@ -85,7 +85,7 @@ services:
   invoiceservice:
     image: pitstop/invoiceservice:1.0
     build: InvoiceService
-    container_name: invoiceservice
+    container_name: invoiceservice-pitstop
     depends_on:
       - rabbitmq
       - sqlserver
@@ -96,7 +96,7 @@ services:
   notificationservice:
     image: pitstop/notificationservice:1.0
     build: NotificationService
-    container_name: notificationservice
+    container_name: notificationservice-pitstop
     depends_on:
       - rabbitmq
       - sqlserver
@@ -107,7 +107,7 @@ services:
   timeservice:
     image: pitstop/timeservice:1.0
     build: TimeService
-    container_name: timeservice
+    container_name: timeservice-pitstop
     depends_on:
       - rabbitmq
     environment:
@@ -116,17 +116,26 @@ services:
   workshopmanagementeventhandler:
     image: pitstop/workshopmanagementeventhandler:1.0
     build: WorkshopManagementEventHandler
-    container_name: workshopmanagementeventhandler
+    container_name: workshopmanagementeventhandler-pitstop
     depends_on:
       - rabbitmq
       - sqlserver
+    environment:
+      - DOTNET_ENVIRONMENT=Production
+  
+  customereventhandler:
+    image: pitstop/customereventhandler:1.0
+    build: CustomerEventHandler
+    container_name: customereventhandler-pitstop
+    depends_on:
+      - rabbitmq
     environment:
       - DOTNET_ENVIRONMENT=Production
 
   webapp:
     image: pitstop/webapp:1.0
     build: WebApp
-    container_name: webapp
+    container_name: webapp-pitstop
     depends_on:
       - customermanagementapi
       - vehiclemanagementapi
@@ -137,7 +146,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
 
 volumes:
-  sqlserverdata:
+  pitstopsqlserverdata:
     external: true    
-  rabbitmqdata:
+  pitstoprabbitmqdata:
     external: true
